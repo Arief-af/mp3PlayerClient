@@ -6,14 +6,13 @@ const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const sr = new Recognition();
 import { api } from "boot/axios";
 let response = ref("");
+import axios from "axios";
 onMounted(() => {
-  api.get("/").then((res) => {
-    console.log(res);
-  });
   sr.lang = "id-ID";
   sr.continuous = true;
   sr.interimResults = true;
   sr.onstart = () => {
+    transcript.value = "";
     console.log("SR Started");
     console.log(isRecording);
     isRecording.value = true;
@@ -25,7 +24,6 @@ onMounted(() => {
   sr.onresult = (evt) => {
     for (let i = 0; i < evt.results.length; i++) {
       const result = evt.results[i];
-      if (result.isFinal) CheckForCommand(result);
     }
     const t = Array.from(evt.results)
       .map((result) => result[0])
@@ -36,49 +34,10 @@ onMounted(() => {
   };
 });
 
-const sendApi = (mood) => {
-  switch (mood) {
-    case "senang":
-      console.log("senang");
-      break;
-    case "sedih":
-      let audio = new Audio("/music/1.mp3");
-      audio.play();
-      // code block
-      console.log("sedih");
-      break;
-    case "bosan":
-      // code block
-      console.log("bosan");
-      break;
-    case "belajar":
-      console.log("belajar");
-      // code block
-      break;
-    default:
-    // code block
-  }
-};
-const CheckForCommand = (result) => {
-  const t = result[0].transcript;
-  if (t.includes("Aku lagi sedih")) {
-    sendApi("sedih");
-    sr.stop();
-  } else if (t.includes("hari yang menyenangkan")) {
-    sendApi("senang");
-    sr.stop();
-  } else if (
-    t.includes("bosan banget") ||
-    t.includes("bosan") ||
-    t.includes("bosen banget")
-  ) {
-    sendApi("bosan");
-    sr.stop();
-  } else if (t.includes("saatnya belajar")) {
-    sendApi("belajar");
-    sr.stop();
-  }
-};
+const onOff = () => {
+  api.get('/stop')
+}
+
 const ToggleMic = () => {
   if (isRecording.value) {
     sr.stop();
@@ -87,21 +46,43 @@ const ToggleMic = () => {
   }
 };
 
-const onSend = () => {
+const randomHappy = () => Math.floor(Math.random() * 3) + 1;
+const randomSad = () => Math.floor(Math.random() * 3) + 4;
+const randomBosan = () => Math.floor(Math.random() * 9) + 1;
+const randomBelajar = () => Math.floor(Math.random() * 3) + 7;
+
+const sendApi = (music) => {
+  var formData = new FormData();
+  formData.append("plain", music);
   api
-    .post("/", {
-      message: "",
-    })
+    .post("/getMood", 
+      formData
+    )
     .then((res) => {
       console.log(res);
     })
     .catch((err) => {
-      // alert("tunggu 20 detik beb");
       console.log(err);
     });
 };
+const onSend = () => {
+  if (transcript.value == "aku lagi sedih") {
+    sendApi(randomSad());
+  } else if (transcript.value == "Aku lagi sedih, naikin mood aku dong") {
+    sendApi(randomHappy());
+  } else if (transcript.value == "hari yang menyenangkan") {
+    sendApi(randomHappy());
+  } else if (
+    transcript.value == "bosan banget" ||
+    transcript.value == "bosan" ||
+    transcript.value == "bosen banget"
+  ) {
+    sendApi(randomBosan());
+  } else if (transcript.value == "saatnya belajar") {
+    sendApi(randomBelajar());
+  }
+};
 </script>
-
 <template>
   <div class="q-pa-sm content">
     <!-- {{ isRecording }} -->
@@ -116,22 +97,52 @@ const onSend = () => {
       class="transcript q-pa-md text-center text-white"
       v-text="transcript"
     ></div>
-    <center>
-      <q-btn
-        class="bg-white q-mx-auto text-dark q-mt-sm text-center"
-        icon="send"
-        label="send"
-        @click="onSend"
-      />
-    </center>
+    <center></center>
     <!-- {{ transcript }} -->
     <!-- {{ response }} -->
+  </div>
+  <div class="footer">
+    <q-btn
+      color="dark"
+      class="q-pa-md"
+      rounded
+      icon="home"
+      to="/"
+      label="home"
+    />
+    <q-btn
+      color="positive"
+      class="q-ml-sm"
+      rounded
+      label="send"
+      icon="send"
+      @click="onSend"
+    />
+     <q-btn
+      color="negative"
+      class="q-ml-sm"
+      rounded
+      icon="power_off"
+      @click="onOff"
+    />
   </div>
 </template>
 
 <style>
 body {
   background: #1d1d1d;
+}
+
+.footer {
+  position: fixed;
+  bottom: 0px;
+  left: 0px;
+  width: 100%;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  background: #2c2c2c;
+  border-radius: 37px 37px 0px 0px;
 }
 
 .content {
