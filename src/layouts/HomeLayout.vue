@@ -5,7 +5,7 @@
         <img class="hero__mascot" src="hero1.png" alt="" />
         <h1 class="ml9">
           <span class="text-wrapper">
-            <span class="letters">Mood MP3 Player</span>
+            <span class="letters">Mood Music Player</span>
           </span>
         </h1>
       </div>

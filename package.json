@@ -1,7 +1,7 @@
 {
-  "name": "mp3moodplayer",
+  "name": "MoodMusicPlayer",
   "version": "0.0.1",
-  "description": "A Quasar Project",
+  "description": "Tugas UAS Algoritma Lanjut",
   "productName": "MP3MoodPlayer",
   "author": "Arief Akhmad Fauzi <sekolah.arief@gmail.com>",
   "private": true,
