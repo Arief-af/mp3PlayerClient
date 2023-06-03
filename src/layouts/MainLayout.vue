@@ -2,13 +2,10 @@
 import { ref, onMounted } from "vue";
 import { useQuasar } from "quasar";
 import { useIPStore } from "stores/ip";
-const transcript = ref("");
-const isRecording = ref(false);
-const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-const sr = new Recognition();
 import axios from "axios";
 const store = useIPStore();
 const $q = useQuasar();
+let transcript = ref("");
 const changeIP = () => {
   $q.dialog({
     title: "Setting IP",
@@ -23,43 +20,9 @@ const changeIP = () => {
     store.changeIP(data);
   });
 };
-onMounted(() => {
-  sr.lang = "id-ID";
-  sr.continuous = true;
-  sr.interimResults = true;
-  sr.onstart = () => {
-    transcript.value = "";
-    console.log("SR Started");
-    console.log(isRecording);
-    isRecording.value = true;
-  };
-  sr.onend = () => {
-    console.log("SR Stopped");
-    isRecording.value = false;
-  };
-  sr.onresult = (evt) => {
-    for (let i = 0; i < evt.results.length; i++) {
-      const result = evt.results[i];
-    }
-    const t = Array.from(evt.results)
-      .map((result) => result[0])
-      .map((result) => result.transcript)
-      .join("");
-
-    transcript.value = t;
-  };
-});
 
 const onOff = () => {
   axios.get(`http://${store.ip}/stop`);
-};
-
-const ToggleMic = () => {
-  if (isRecording.value) {
-    sr.stop();
-  } else {
-    sr.start();
-  }
 };
 
 const randomHappy = () => Math.floor(Math.random() * 3) + 1;
@@ -74,6 +37,7 @@ const sendApi = (music) => {
     .post(`http://${store.ip}/getMood`, formData)
     .then((res) => {
       console.log(res);
+      transcript.value = ''
     })
     .catch((err) => {
       console.log(err);
@@ -108,21 +72,7 @@ const onSend = () => {
       : {{ store.ip }}
     </div>
     <div class="q-pa-sm content">
-      <!-- {{ isRecording }} -->
-      <div class="circle" @click="ToggleMic">
-        <q-icon name="mic" />
-      </div>
-      <div class="text-center text-white q-pa-md" v-if="isRecording">
-        Listening..
-      </div>
-
-      <div
-        class="transcript q-pa-md text-center text-white"
-        v-text="transcript"
-      ></div>
-      <center></center>
-      <!-- {{ transcript }} -->
-      <!-- {{ response }} -->
+        <q-input dark filled v-model="transcript" label="Mood" />
     </div>
   </div>
 
