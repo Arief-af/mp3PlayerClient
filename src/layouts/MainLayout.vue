@@ -1,12 +1,28 @@
 <script setup>
 import { ref, onMounted } from "vue";
+import { useQuasar } from "quasar";
+import { useIPStore } from "stores/ip";
 const transcript = ref("");
 const isRecording = ref(false);
 const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const sr = new Recognition();
-import { api } from "boot/axios";
-let response = ref("");
 import axios from "axios";
+const store = useIPStore();
+const $q = useQuasar();
+const changeIP = () => {
+  $q.dialog({
+    title: "Setting IP",
+    message: "Masukan IP Perangkat Mood Music Player  ",
+    prompt: {
+      model: "",
+      type: "text", // optional
+    },
+    cancel: true,
+    persistent: true,
+  }).onOk((data) => {
+    store.changeIP(data);
+  });
+};
 onMounted(() => {
   sr.lang = "id-ID";
   sr.continuous = true;
@@ -35,8 +51,8 @@ onMounted(() => {
 });
 
 const onOff = () => {
-  api.get('/stop')
-}
+  axios.get(`http://${store.ip}/stop`);
+};
 
 const ToggleMic = () => {
   if (isRecording.value) {
@@ -54,10 +70,8 @@ const randomBelajar = () => Math.floor(Math.random() * 3) + 7;
 const sendApi = (music) => {
   var formData = new FormData();
   formData.append("plain", music);
-  api
-    .post("/getMood", 
-      formData
-    )
+  axios
+    .post(`http://${store.ip}/getMood`, formData)
     .then((res) => {
       console.log(res);
     })
@@ -66,7 +80,11 @@ const sendApi = (music) => {
     });
 };
 const onSend = () => {
-  if (transcript.value == "aku lagi sedih") {
+  if (
+    transcript.value == "aku lagi sedih" ||
+    transcript.value == "Aku lagi sedih"
+  ) {
+    console.log("masuk");
     sendApi(randomSad());
   } else if (transcript.value == "Aku lagi sedih, naikin mood aku dong") {
     sendApi(randomHappy());
@@ -84,23 +102,30 @@ const onSend = () => {
 };
 </script>
 <template>
-  <div class="q-pa-sm content">
-    <!-- {{ isRecording }} -->
-    <div class="circle" @click="ToggleMic">
-      <q-icon name="mic" />
+  <div class="wrapping">
+    <div class="config">
+      <q-btn class="bg-white text-dark" icon="settings" @click="changeIP" /> IP
+      : {{ store.ip }}
     </div>
-    <div class="text-center text-white q-pa-md" v-if="isRecording">
-      Listening..
-    </div>
+    <div class="q-pa-sm content">
+      <!-- {{ isRecording }} -->
+      <div class="circle" @click="ToggleMic">
+        <q-icon name="mic" />
+      </div>
+      <div class="text-center text-white q-pa-md" v-if="isRecording">
+        Listening..
+      </div>
 
-    <div
-      class="transcript q-pa-md text-center text-white"
-      v-text="transcript"
-    ></div>
-    <center></center>
-    <!-- {{ transcript }} -->
-    <!-- {{ response }} -->
+      <div
+        class="transcript q-pa-md text-center text-white"
+        v-text="transcript"
+      ></div>
+      <center></center>
+      <!-- {{ transcript }} -->
+      <!-- {{ response }} -->
+    </div>
   </div>
+
   <div class="footer">
     <q-btn
       color="dark"
@@ -118,7 +143,7 @@ const onSend = () => {
       icon="send"
       @click="onSend"
     />
-     <q-btn
+    <q-btn
       color="negative"
       class="q-ml-sm"
       rounded
@@ -169,5 +194,20 @@ body {
 
 .circle:hover {
   background-color: #454545;
+}
+
+.config {
+  color: white;
+  padding: 30px;
+  position: fixed !important;
+  top: 0px !important;
+  width: 100%;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  background: #2c2c2c;
+  border-radius: 0px 0px 37px 37px;
 }
 </style>
