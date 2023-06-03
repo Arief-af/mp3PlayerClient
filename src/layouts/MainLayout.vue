@@ -29,7 +29,7 @@ const randomHappy = () => Math.floor(Math.random() * 3) + 1;
 const randomSad = () => Math.floor(Math.random() * 3) + 4;
 const randomBosan = () => Math.floor(Math.random() * 9) + 1;
 const randomBelajar = () => Math.floor(Math.random() * 3) + 7;
-
+let erros = ref("");
 const sendApi = (music) => {
   var formData = new FormData();
   formData.append("plain", music);
@@ -37,10 +37,10 @@ const sendApi = (music) => {
     .post(`http://${store.ip}/getMood`, formData)
     .then((res) => {
       console.log(res);
-      transcript.value = ''
+      transcript.value = "";
     })
     .catch((err) => {
-      console.log(err);
+      erros.value = err;
     });
 };
 const onSend = () => {
@@ -72,7 +72,8 @@ const onSend = () => {
       : {{ store.ip }}
     </div>
     <div class="q-pa-sm content">
-        <q-input dark filled v-model="transcript" label="Mood" />
+      {{ erros }}
+      <q-input dark filled v-model="transcript" label="Mood" />
     </div>
   </div>
 
