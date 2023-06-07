@@ -73,7 +73,11 @@ const sendApi = (music) => {
   axios
     .post(`http://${store.ip}/getMood`, formData)
     .then((res) => {
-      console.log(res);
+      $q.notify({
+        message: `Playing ${res.data}`,
+        color: 'positive',
+        position: "top-right"
+      })
     })
     .catch((err) => {
       console.log(err);
